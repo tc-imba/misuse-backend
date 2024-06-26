@@ -1,0 +1,48 @@
+<html>
+<head>
+    <title>Misuse Backend</title>
+
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+
+    </style>
+</head>
+<body>
+<h1>Misuse Backend</h1>
+<table>
+    <tr>
+        <th>id</th>
+        <th>method</th>
+        <th>url</th>
+        <th>ip</th>
+        <th>geo</th>
+        <th>time</th>
+    </tr>
+    {% for row in data %}
+    <tr>
+        <td>{{ row['id'] }}</td>
+        <td>{{ row['method'] }}</td>
+        <td>{{ row['url'] }}</td>
+        <td>{{ row['client_ip'] }}</td>
+        <td>{{ row['client_geo'] }}</td>
+        <td>{{ row['created_at'] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>

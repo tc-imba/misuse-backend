@@ -1,0 +1,20 @@
+version: '3.5'
+services:
+  core:
+    image: tcimba/misuse-backend
+    build:
+      context: .
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: on-failure
+    volumes:
+      - ./db.sqlite:/root/db.sqlite
+    ports:
+      - "9000:9000"
+    environment:
+      - DEBUG=false
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-9000}
+      - IPINFO_ACCESS_TOKEN=${IPINFO_ACCESS_TOKEN:-}
+      - WORKERS=${WORKERS:-4}
+

@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "misuse-backend"
+version = "0.1.0"
+description = ""
+authors = ["tc-imba <liuyh970615@gmail.com>"]
+readme = "README.md"
+packages = [{include = "misuse_backend"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.111.0"
+pydantic-settings = "^2.3.4"
+sqlmodel = "^0.0.19"
+ipinfo = "^5.0.1"
+loguru = "^0.7.2"
+jinja2 = "^3.1.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
