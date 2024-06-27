@@ -10,11 +10,11 @@ services:
     volumes:
       - ./db.sqlite:/root/db.sqlite
     ports:
-      - "9000:9000"
+      - "9090:9090"
     environment:
       - DEBUG=false
-      - HOST=${HOST:-0.0.0.0}
-      - PORT=${PORT:-9000}
+      - HOST=0.0.0.0
+      - PORT=9090
       - IPINFO_ACCESS_TOKEN=${IPINFO_ACCESS_TOKEN:-}
       - WORKERS=${WORKERS:-4}
 
