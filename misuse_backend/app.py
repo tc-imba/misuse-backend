@@ -62,9 +62,9 @@ def record_path_background(url: str, query_params: str, method: str, client_ip: 
     "/{url:path}",
     methods=["GET", "POST", "DELETE", "PUT", "OPTIONS", "HEAD", "PATCH", "TRACE"]
 )
-def record_path(request: Request, background_tasks: BackgroundTasks, url: str = "", ):
+def record_path(request: Request, background_tasks: BackgroundTasks, url: str = ""):
     query_params = str(request.query_params)
-    if url == "" and len(query_params) == 0:
+    if url == "" and len(query_params) == 0 and request.method == "GET":
         with Session(engine) as session:
             statement = select(History).order_by(History.id.desc()).limit(100)
             results = session.exec(statement)
