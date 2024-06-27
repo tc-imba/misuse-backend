@@ -18,7 +18,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY ./pyproject.toml ./poetry.lock ./README.md /root/
 COPY ./misuse_backend/__init__.py ./poetry.lock ./README.md /root/misuse_backend/
 RUN --mount=type=cache,target=/root/.cache poetry install --no-dev
-COPY ./misuse_backend /root/misuse_backend/
+COPY . /root/
 RUN --mount=type=cache,target=/root/.cache poetry install --no-dev
 
 EXPOSE $PORT
