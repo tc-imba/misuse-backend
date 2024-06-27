@@ -39,20 +39,6 @@ def get_ipinfo(client_ip):
     return geo
 
 
-@app.get("/")
-def root(request: Request, limit: int = Query(100), offset: int = Query(0)):
-    with Session(engine) as session:
-        statement = select(History)
-        results = session.exec(statement)
-        data = []
-        for row in results:
-            data.append(row.dict())
-
-        return templates.TemplateResponse(
-            request=request, name="index.html", context={"data": data}
-        )
-
-
 def record_path_background(url: str, query_params: str, method: str, client_ip: str, created_at: datetime):
     if query_params:
         url = f"{url}?{query_params}"
@@ -71,16 +57,30 @@ def record_path_background(url: str, query_params: str, method: str, client_ip: 
     session.commit()
 
 
+@app.api_route("/", methods=["GET", "POST", "DELETE", "PUT", "OPTIONS", "HEAD", "PATCH", "TRACE"])
 @app.api_route(
     "/{url:path}",
     methods=["GET", "POST", "DELETE", "PUT", "OPTIONS", "HEAD", "PATCH", "TRACE"]
 )
-def record_path(request: Request, url: str, background_tasks: BackgroundTasks) -> FileResponse:
+def record_path(request: Request, background_tasks: BackgroundTasks, url: str = "", ):
+    query_params = str(request.query_params)
+    if url == "" and len(query_params) == 0:
+        with Session(engine) as session:
+            statement = select(History).order_by(History.id.desc()).limit(100)
+            results = session.exec(statement)
+            data = []
+            for row in results:
+                data.append(row.dict())
+
+            return templates.TemplateResponse(
+                request=request, name="index.html", context={"data": data}
+            )
+
     if url != "favicon.ico":
         background_tasks.add_task(
             record_path_background,
             url,
-            str(request.query_params),
+            query_params,
             request.method,
             request.client.host,
             datetime.utcnow(),
