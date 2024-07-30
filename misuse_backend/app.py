@@ -11,7 +11,8 @@ from loguru import logger
 
 from redis import StrictRedis
 from redis_cache import RedisCache
-from redlock import RedLock
+from redlock import RedLockFactory
+from redlock import RedLockFactory
 
 from misuse_backend.config import settings
 from misuse_backend.models import History, engine
@@ -32,7 +33,11 @@ templates = Jinja2Templates(directory=str(templates_dir.absolute()))
 
 redis_client = StrictRedis(host="redis", decode_responses=True)
 cache = RedisCache(redis_client=redis_client)
-lock = RedLock("distributed_lock")
+factory = RedLockFactory(
+    connection_details=[
+        {'host': 'redis', 'port': 6379, 'db': 0},
+    ])
+lock = factory.create_lock("distributed_lock")
 
 
 def redlock_decorator(func):
