@@ -42,10 +42,8 @@ lock = factory.create_lock("distributed_lock")
 
 def redlock_decorator(func):
     def wrapper(*args, **kwargs):
-        lock.acquire()
-        result = func(*args, **kwargs)
-        lock.release()
-        return result
+        with factory.create_lock("distributed_lock"):
+            return func(*args, **kwargs)
 
     return wrapper
 
@@ -53,26 +51,25 @@ def redlock_decorator(func):
 @cache.cache(ttl=14 * 24 * 60 * 60)
 @redlock_decorator
 def get_ipinfo(client_ip):
-    try:
-        handler = ipinfo.getHandler(settings.IPINFO_ACCESS_TOKEN)
-        details = handler.getDetails(client_ip)
-        city = details.all.get("city", "")
-        region = details.all.get("region", "")
-        country = details.all.get("country", "")
-        result = list(filter(lambda x: len(x) > 0, [city, region, country]))
-        geo = ", ".join(result)
-        logger.info("ip: {}, city: {}, region: {}, country: {}, geo: {}", client_ip, city, region, country, geo)
-        return geo
-    except Exception as e:
-        logger.error(str(e))
-        return ""
+    handler = ipinfo.getHandler(settings.IPINFO_ACCESS_TOKEN)
+    details = handler.getDetails(client_ip)
+    city = details.all.get("city", "")
+    region = details.all.get("region", "")
+    country = details.all.get("country", "")
+    result = list(filter(lambda x: len(x) > 0, [city, region, country]))
+    geo = ", ".join(result)
+    logger.info("ip: {}, city: {}, region: {}, country: {}, geo: {}", client_ip, city, region, country, geo)
+    return geo
 
 
 def record_path_background(url: str, query_params: str, method: str, client_ip: str, created_at: datetime):
     if query_params:
         url = f"{url}?{query_params}"
-
-    client_geo = get_ipinfo(client_ip)
+    try:
+        client_geo = get_ipinfo(client_ip)
+    except Exception as e:
+        logger.error(str(e))
+        client_geo = ""
 
     history = History(
         url=url,
