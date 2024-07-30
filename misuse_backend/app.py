@@ -9,6 +9,10 @@ import pathlib
 import ipinfo
 from loguru import logger
 
+from redis import StrictRedis
+from redis_cache import RedisCache
+from redlock import RedLock
+
 from misuse_backend.config import settings
 from misuse_backend.models import History, engine
 
@@ -26,17 +30,37 @@ templates_dir = pathlib.Path(__file__).parent.parent / "templates"
 # png_bytes = png_file.read_bytes()
 templates = Jinja2Templates(directory=str(templates_dir.absolute()))
 
+redis_client = StrictRedis(host="redis", decode_responses=True)
+cache = RedisCache(redis_client=redis_client)
+lock = RedLock("distributed_lock")
 
+
+def redlock_decorator(func):
+    def wrapper(*args, **kwargs):
+        lock.acquire()
+        result = func(*args, **kwargs)
+        lock.release()
+        return result
+
+    return wrapper
+
+
+@cache.cache(ttl=14 * 24 * 60 * 60)
+@redlock_decorator
 def get_ipinfo(client_ip):
-    handler = ipinfo.getHandler(settings.IPINFO_ACCESS_TOKEN)
-    details = handler.getDetails(client_ip)
-    city = details.all.get("city", "")
-    region = details.all.get("region", "")
-    country = details.all.get("country", "")
-    result = list(filter(lambda x: len(x) > 0, [city, region, country]))
-    geo = ", ".join(result)
-    logger.info("ip: {}, city: {}, region: {}, country: {}, geo: {}", client_ip, city, region, country, geo)
-    return geo
+    try:
+        handler = ipinfo.getHandler(settings.IPINFO_ACCESS_TOKEN)
+        details = handler.getDetails(client_ip)
+        city = details.all.get("city", "")
+        region = details.all.get("region", "")
+        country = details.all.get("country", "")
+        result = list(filter(lambda x: len(x) > 0, [city, region, country]))
+        geo = ", ".join(result)
+        logger.info("ip: {}, city: {}, region: {}, country: {}, geo: {}", client_ip, city, region, country, geo)
+        return geo
+    except Exception as e:
+        logger.exception(e)
+        return ""
 
 
 def record_path_background(url: str, query_params: str, method: str, client_ip: str, created_at: datetime):
@@ -70,7 +94,7 @@ def record_path(request: Request, background_tasks: BackgroundTasks, url: str = 
             results = session.exec(statement)
             data = []
             for row in results:
-                data.append(row.dict())
+                data.append(row.model_dump())
 
             return templates.TemplateResponse(
                 request=request, name="index.html", context={"data": data}
