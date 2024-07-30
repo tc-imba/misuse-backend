@@ -64,7 +64,7 @@ def get_ipinfo(client_ip):
         logger.info("ip: {}, city: {}, region: {}, country: {}, geo: {}", client_ip, city, region, country, geo)
         return geo
     except Exception as e:
-        logger.exception(e)
+        logger.error(str(e))
         return ""
 
 
