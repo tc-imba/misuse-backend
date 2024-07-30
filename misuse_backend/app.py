@@ -68,7 +68,7 @@ def record_path_background(url: str, query_params: str, method: str, client_ip: 
     try:
         client_geo = get_ipinfo(client_ip)
     except Exception as e:
-        logger.error(str(e))
+        logger.error("ip: {}, exception: {}", client_ip, str(e))
         client_geo = ""
 
     history = History(
