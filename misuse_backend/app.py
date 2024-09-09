@@ -62,9 +62,7 @@ def get_ipinfo(client_ip):
     return geo
 
 
-def record_path_background(url: str, query_params: str, method: str, client_ip: str, created_at: datetime):
-    if query_params:
-        url = f"{url}?{query_params}"
+def record_path_background(url: str, method: str, client_ip: str, created_at: datetime):
     try:
         client_geo = get_ipinfo(client_ip)
     except Exception as e:
@@ -84,6 +82,14 @@ def record_path_background(url: str, query_params: str, method: str, client_ip: 
 
 @app.middleware("http")
 async def remove_newline_in_url(request: Request, call_next):
+    raw_url = str(request.url)
+    url_prefix = f"{request.url.scheme}://{request.url.hostname}/"
+    url_prefix_with_port = f"{request.url.scheme}://{request.url.hostname}:{request.url.port}/"
+    if raw_url.startswith(url_prefix):
+        raw_url = raw_url[len(url_prefix):]
+    elif raw_url.startswith(url_prefix_with_port):
+        raw_url = raw_url[len(url_prefix_with_port):]
+    request.state.raw_url = raw_url
     request.scope['path'] = request.url.path.replace("\n", "\\n")
     response = await call_next(request)
     return response
@@ -110,8 +116,7 @@ def record_path(request: Request, background_tasks: BackgroundTasks, url: str = 
     if url != "favicon.ico":
         background_tasks.add_task(
             record_path_background,
-            url,
-            query_params,
+            request.state.raw_url,
             request.method,
             request.client.host,
             datetime.utcnow(),
