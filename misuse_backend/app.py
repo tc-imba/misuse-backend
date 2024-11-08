@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, Query, BackgroundTasks
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 
@@ -80,6 +80,7 @@ def record_path_background(url: str, method: str, client_ip: str, created_at: da
     session.add(history)
     session.commit()
 
+
 @app.middleware("http")
 async def remove_newline_in_url(request: Request, call_next):
     raw_url = str(request.url)
@@ -93,6 +94,7 @@ async def remove_newline_in_url(request: Request, call_next):
     request.scope['path'] = request.url.path.replace("\n", "\\n")
     response = await call_next(request)
     return response
+
 
 @app.api_route("/", methods=["GET", "POST", "DELETE", "PUT", "OPTIONS", "HEAD", "PATCH", "TRACE"])
 @app.api_route(
@@ -121,7 +123,8 @@ def record_path(request: Request, background_tasks: BackgroundTasks, url: str = 
             request.client.host,
             datetime.utcnow(),
         )
+    if settings.RETURN_TYPE == "png":
+        return FileResponse(png_file)
+    elif settings.RETURN_TYPE == "text":
+        return PlainTextResponse(f"Hello, this is velocity.show at UTC time {datetime.utcnow()}.")
 
-    return FileResponse(png_file)
-
-# https://velocity.show/%60As%20you%20may%20know%2C%20our%20project%20%22kickstarting%20the%20world%E2%80%99s%20largest%20completion%20contract%20ADNOC%20DCE%22%20is%20awarded%20with%20Special%20Recognition%20for%20Integration%20and%20Collaboration.%20%22Congratulations%20to%20Ying%20Yue%20and%20whole%20CPU%20team%21%21%22%20%26%23%3B%0A%26%23%3B%20I%20would%20like%20to%20thank%20all%20of%20our%20CS%20%23%3B%26%23%3B%201.%20%26%23%3B%20closely%20engage%20with%20ANDNOC%20project%20team%20about%20the%20demand%2Fdelivery%23%3B%26%23%3B%202.%20%26%23%3B%20smartly%20quote%20all%20parts%20without%20issues%23%3B%26%23%3B%203.%20%26%23%3B%20diligently%20follow%20up%20about%20SO%20status%20no%20matter%20it%E2%80%99s%20expedite%20or%20defer%20or%20expedite%20after%20defer%23%3B%26%23%3B%204.%20%26%23%3B%20proactively%20work%20with%20planning%20team%20about%20delivery%20plan%23%3B%26%23%3B%20%26%23%3B%20I%20would%20like%20to%20say%20this%20is%20a%20great%20teamwork%20we%20do%2C%20and%20I%20see%20these%20points%20in%20our%20daily%20job%20as%20well.%20%26%23%3B%20This%20gives%20me%20an%20opportunity%20to%20shout%20loudly%20to%20all.%20%26%23%3B%20Proud%20of%20you%21%21%22

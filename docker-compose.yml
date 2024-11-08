@@ -17,6 +17,7 @@ services:
       - PORT=9090
       - IPINFO_ACCESS_TOKEN=${IPINFO_ACCESS_TOKEN:-}
       - WORKERS=${WORKERS:-4}
+      - RETURN_TYPE=${RETURN_TYPE:-png}
     networks:
       - misuse-backend-network
   redis:

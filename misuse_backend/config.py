@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     LOGGING_LEVEL: int = logging.INFO
 
     IPINFO_ACCESS_TOKEN: str = ''
+    RETURN_TYPE: str = 'png'
 
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
 
